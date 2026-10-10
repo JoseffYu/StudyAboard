@@ -1,0 +1,17 @@
+.device-preview { min-height: 100dvh; padding: 28px 20px; background: #e9eee6; }
+
+.device-preview-heading { max-width: 540px; margin: 0 auto 22px; display: flex; align-items: center; justify-content: space-between; gap: 18px; }
+
+.device-preview-heading h1 { font-size: 21px; margin-bottom: 7px; }
+
+.device-preview-heading p { font-size: 12px; color: var(--muted); margin: 0; }
+
+.device-preview-heading a { font-size: 11px; color: var(--green); white-space: nowrap; }
+
+.device-frame { width: min(410px,100%); margin: auto; padding: 10px; border-radius: 35px; background: #233b32; box-shadow: 0 20px 65px #223b3222; }
+
+.device-screen { display: block; width: 100%; height: min(844px,calc(100dvh - 170px)); min-height: 420px; border: 0; border-radius: 26px; background: var(--paper); }
+
+.device-preview-caption { text-align: center; font-size: 11px; color: var(--muted); margin: 18px 0 0; }
+
+@media(max-width:640px){.device-preview { padding: 22px 12px; }.device-preview-heading { align-items: flex-start; }.device-preview-heading h1 { font-size: 18px; }.device-preview-heading p { font-size: 10px; }}

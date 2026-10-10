@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="zh-CN" data-client="mobile">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#286b59">
+  <meta name="description" content="留学生的课程、考试和日常记录。给异国生活一点秩序。">
+  <title>留学手记 · 手机版</title>
+  <link rel="icon" href="/shared/favicon.svg" type="image/svg+xml">
+  <link rel="stylesheet" href="/shared/base.css">
+  <link rel="stylesheet" href="/mobile/style.css">
+  <script src="/shared/startup.js" defer></script>
+  <script id="app-script" src="/shared/app.js" defer></script>
+</head>
+<body>
+  <noscript>请开启浏览器的 JavaScript 后刷新页面，以使用登录和日程功能。</noscript>
+  <div id="loading" class="loading" hidden>正在打开留学手记…</div>
+  <section id="auth" class="auth">
+    <div class="auth-story">
+      <a class="brand" href="/mobile/"><img src="/shared/favicon.svg" alt="" width="38" height="38">留学手记<span>STUDY ABROAD JOURNAL</span></a>
+      <div><p class="eyebrow">A LITTLE ORDER, A LOT OF LIFE</p><h1>在新的城市，<br>写下自己的节奏。</h1><p>从第一堂课到最后一场考试，<br>把值得记住的日常，慢慢收好。</p></div>
+      <div class="paper-art" aria-hidden="true"><div class="paper-label">MY NEXT CHAPTER</div><div class="paper-line"></div><div class="paper-line short"></div><div class="paper-circle">好好生活<br>慢慢成长</div><span class="paper-spark">✳</span></div>
+      <small>课程 · 考试 · 生活，每一页都是你的留学故事。</small>
+    </div>
+    <div class="auth-panel">
+      <div class="auth-form-wrap"><span class="mini-label">WELCOME TO YOUR JOURNAL</span><h2 id="auth-title">欢迎回来</h2><p id="auth-description" class="muted">登录，接着安排属于你的日常。</p>
+        <div class="auth-tabs" aria-label="账号操作"><button type="button" class="selected" data-auth="login">登录</button><button type="button" data-auth="register">注册账号</button></div>
+        <form id="auth-form">
+          <label id="name-label" hidden>昵称<input name="name" placeholder="我们该怎么称呼你？" maxlength="40" autocomplete="nickname"></label>
+          <label>邮箱<input name="email" type="email" placeholder="you@example.com" autocomplete="email" maxlength="254" required></label>
+          <label>密码<input name="password" type="password" placeholder="至少 8 个字符" minlength="8" maxlength="128" autocomplete="current-password" required></label>
+          <p id="auth-error" class="error" role="alert">正在连接服务…</p>
+          <button class="button primary full" type="submit" id="auth-submit" disabled>登录我的手记 <span>↗</span></button>
+        </form>
+        <p class="auth-foot">新账号从普通会员开始，开启你的第一篇留学手记。</p>
+      </div>
+    </div>
+  </section>
+  <div id="workspace" class="workspace" hidden>
+    <aside class="sidebar">
+      <a class="brand" href="/mobile/"><img src="/shared/favicon.svg" alt="" width="36" height="36"><div>留学手记<small>你的留学生活，有迹可循</small></div></a>
+      <span class="nav-caption">我的空间</span>
+      <nav aria-label="主导航">
+        <button class="nav-item active" data-view="all"><span class="nav-icon">▦</span>日程总览<span class="nav-dot"></span></button>
+        <button class="nav-item" data-view="course"><span class="nav-icon">▤</span>课程表</button>
+        <button class="nav-item" data-view="exam"><span class="nav-icon">◷</span>考试表</button>
+        <button class="nav-item" data-view="daily"><span class="nav-icon">✎</span>日常记录</button>
+      </nav>
+      <div class="sidebar-note"><span>✳</span><p>不必每一天都很满，<br>也为生活留一点空白。</p></div>
+      <button class="nav-item membership-nav" data-view="membership"><span class="nav-icon">◇</span>我的会员</button>
+      <div class="profile"><div id="avatar" class="avatar">我</div><div class="profile-details"><strong id="profile-name"></strong><small id="profile-tier"></small></div><button id="logout" aria-label="退出登录" title="退出登录">↪</button></div>
+    </aside>
+    <main>
+      <header class="topbar"><span>我的空间 <span class="slash">/</span> <strong id="breadcrumb">日程总览</strong></span><span id="today-label"></span></header>
+      <div class="main-content">
+        <section class="heading-row"><div><p class="eyebrow">MAKE ROOM FOR YOUR EVERYDAY</p><h1 id="page-title">让日常，井井有条。</h1><p id="page-description" class="muted">课程、考试与生活，把每一件小事安放好。</p></div><button class="button primary" id="new-entry"><span>＋</span> 新建日程</button></section>
+        <section id="member-card" class="member-card" data-tier="basic" aria-label="我的会员卡">
+          <div id="member-card-inner" class="member-card-inner">
+            <button type="button" id="member-card-front" class="member-face member-front" aria-label="翻转会员卡，查看会员权益">
+              <span class="member-topline"><span class="member-wordmark">留学手记 <span>MEMBERSHIP</span></span><span class="member-status">当前等级</span></span>
+              <span class="member-main"><span><span class="member-tier" id="member-card-tier">普通会员</span><span class="member-owner" id="member-card-owner"></span></span><span class="member-emblem" aria-hidden="true">◇</span></span>
+              <span class="member-bottomline"><span id="member-card-code">BASIC MEMBER</span><span class="member-flip-hint">翻转查看权益 <span aria-hidden="true">↻</span></span></span>
+            </button>
+            <div id="member-card-back" class="member-face member-back" aria-hidden="true" inert>
+              <div class="member-topline"><span class="member-wordmark">你的会员权益</span><button type="button" id="member-card-return" class="member-return">返回正面 ↻</button></div>
+              <div class="member-benefits"><span>▤ 课程与考试安排</span><span>✎ 日常记录与备注</span><span>▦ 列表与月历查看</span><span>✓ 个人记录独立保存</span></div>
+              <div class="member-bottomline"><span>基础功能均已开放</span><button type="button" id="member-card-details" class="member-details">查看会员等级 <span aria-hidden="true">↗</span></button></div>
+            </div>
+          </div>
+        </section>
+        <section id="schedule-content">
+          <div class="stats"><button class="stat" data-filter="course"><span class="stat-label">本周课程 <span class="stat-icon course">▤</span></span><strong id="course-count">0<small> 门</small></strong><small>这周的学习节奏</small></button><button class="stat" data-filter="exam"><span class="stat-label">待考科目 <span class="stat-icon exam">◷</span></span><strong id="exam-count">0<small> 场</small></strong><small>一步一步，准备充分</small></button><button class="stat" data-filter="pending"><span class="stat-label">时间待定 <span class="stat-icon daily">⌁</span></span><strong id="pending-count">0<small> 项</small></strong><small>先记下来，稍后安排</small></button></div>
+          <div class="schedule-layout"><section class="schedule-card"><div class="schedule-toolbar"><div class="view-switch" aria-label="日程展示方式"><button id="list-view" class="selected">日程列表</button><button id="calendar-view">月历视图</button></div><label class="search"><span aria-hidden="true">⌕</span><input id="search" placeholder="搜索标题、地点或备注" aria-label="搜索日程"></label></div><div class="filter-row"><div class="filters" aria-label="日程筛选"><button data-filter="all" class="selected">全部</button><button data-filter="course">课程</button><button data-filter="exam">考试</button><button data-filter="daily">日常</button><button data-filter="pending">时间待定</button></div><label class="done-filter"><input id="hide-done" type="checkbox">隐藏已完成</label></div><div id="entries"></div><div class="card-footer">时间还没确定？留空就好，之后随时补充。<span>✦</span></div></section><aside class="right-column"><section class="mini-calendar"><div class="month-heading"><h3 id="month-label"></h3><div><button id="previous-month" aria-label="上个月">‹</button><button id="next-month" aria-label="下个月">›</button></div></div><div class="weekdays"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div id="mini-days" class="calendar-days"></div><button id="clear-date" class="text-button" hidden>清除日期筛选</button><div class="calendar-legend"><span></span>有安排的日子</div></section><section class="gentle-note"><span class="note-tag">给今天的你</span><div class="note-star" aria-hidden="true">✳</div><h3>学习之外，<br>也记得照顾自己。</h3><p>一顿热饭，一次散步，<br>都是值得记下的小事。</p><span class="note-line"></span><small>A NOTE FOR YOUR EVERYDAY</small></section></aside></div>
+        </section>
+        <section id="membership-content" hidden><div class="membership-banner"><span>◇</span><div><h2>你的会员身份：<span id="current-membership"></span></h2><p>所有账号均可使用课程、考试和日常记录。更多会员权益将在后续开放。</p></div></div><div class="plans"><article class="plan"><span class="mini-label">BASIC</span><h2>普通会员</h2><p>从记录每一天开始</p><ul><li>个人账号与独立数据</li><li>课程、考试与日常记录</li><li>日程编辑与完成状态</li><li>列表和月历查看</li></ul><span class="plan-status" data-tier="basic"></span></article><article class="plan"><span class="mini-label">PLUS</span><h2>Plus 会员</h2><p>为更丰富的留学生活预留</p><ul><li>包含全部基础功能</li><li>专属扩展权益待开放</li></ul><span class="plan-status" data-tier="plus"></span></article><article class="plan"><span class="mini-label">PRO</span><h2>Pro 会员</h2><p>为进阶需求预留</p><ul><li>包含全部基础功能</li><li>专属扩展权益待开放</li></ul><span class="plan-status" data-tier="pro"></span></article></div><p class="muted membership-help">当前版本仅提供等级分类，暂未开放付费升级。</p></section>
+        <footer class="page-footer"><span>留学手记 · 每一天，都算数。</span><a class="version-link" href="/desktop/">切换电脑版 ↗</a></footer>
+      </div>
+    </main>
+    <nav class="mobile-nav" aria-label="手机主导航">
+      <button type="button" data-view="all" class="active" aria-current="page"><span aria-hidden="true">▦</span>首页</button>
+      <button type="button" data-view="course"><span aria-hidden="true">▤</span>课程</button>
+      <button type="button" data-view="exam"><span aria-hidden="true">◷</span>考试</button>
+      <button type="button" data-view="daily"><span aria-hidden="true">✎</span>日常</button>
+      <button type="button" data-view="membership"><span aria-hidden="true">◇</span>会员</button>
+    </nav>
+  </div>
+  <dialog id="entry-dialog"><form id="entry-form"><div class="dialog-heading"><div><p class="eyebrow">A NEW LITTLE PLAN</p><h2 id="dialog-title">新建日程</h2></div><button type="button" class="close-button" id="close-dialog" aria-label="关闭">×</button></div><input name="id" type="hidden"><label>记录类型<select name="kind"><option value="course">课程</option><option value="exam">考试</option><option value="daily">日常记录</option></select></label><label>标题 <span class="required">*</span><input name="title" placeholder="例如：经济学导论 / 期末考试 / 周末散步" maxlength="120" required></label><div class="form-hint">日期和时间都可以留空，确定后再补充。</div><label>日期（选填）<input name="date" type="date"></label><div class="form-grid"><label>开始时间（选填）<input name="start" type="time"></label><label>结束时间（选填）<input name="end" type="time"></label></div><label>地点（选填）<input name="location" placeholder="教室、校区或线上会议" maxlength="160"></label><label>备注 / 日常内容（选填）<textarea name="notes" rows="3" placeholder="记下准备事项，或今天的小小感受…" maxlength="4000"></textarea></label><p id="entry-error" class="error" role="alert"></p><div class="dialog-actions"><button type="button" class="button secondary" id="cancel-dialog">取消</button><button type="submit" class="button primary" id="save-entry">保存日程</button></div></form></dialog>
+  <dialog id="delete-dialog"><div class="delete-content"><h2>删除这条记录？</h2><p>删除后无法恢复。</p><div class="dialog-actions"><button id="cancel-delete" class="button secondary">保留记录</button><button id="confirm-delete" class="button danger">确认删除</button></div></div></dialog>
+  <button id="chat-launcher" class="chat-launcher" type="button" aria-haspopup="dialog" aria-controls="chat-dialog" hidden><span aria-hidden="true">✦</span> 留学小助手</button>
+  <dialog id="chat-dialog" class="chat-dialog" aria-labelledby="chat-title">
+    <header class="chat-header"><span class="chat-logo" aria-hidden="true">✦</span><div><h2 id="chat-title">留学小助手</h2><span id="chat-mode" class="chat-mode">正在连接…</span></div><button id="chat-clear" type="button" title="清空聊天记录" disabled>清空</button><button id="chat-close" type="button" aria-label="关闭聊天">×</button></header>
+    <div id="chat-messages" class="chat-messages" role="log" aria-label="对话记录" aria-live="polite" aria-relevant="additions text"><div class="chat-welcome"><span aria-hidden="true">✦</span><h3>给留学生活一点小帮助</h3><p>查课程、看考试，或一起整理待定的安排。</p></div></div>
+    <div id="chat-pending" class="chat-pending" role="status" hidden>正在整理回复…</div>
+    <div class="chat-prompts" aria-label="快捷提问"><button type="button" data-prompt="今天有什么安排？" disabled>今日安排</button><button type="button" data-prompt="本周有哪些课程？" disabled>本周课程</button><button type="button" data-prompt="接下来有哪些考试？" disabled>近期考试</button><button type="button" data-prompt="哪些安排的时间还没定？" disabled>待定安排</button></div>
+    <div id="chat-feedback" class="chat-feedback" hidden><p id="chat-error" class="error" role="alert"></p><button id="chat-reload" type="button" class="text-button" hidden>重试连接</button></div>
+    <form id="chat-form" class="chat-form"><label class="chat-input-label" for="chat-input">给小助手留言</label><textarea id="chat-input" rows="2" maxlength="2000" placeholder="例如：本周有哪些课程？" required disabled></textarea><label id="chat-share-label" class="chat-share" hidden><input id="chat-share" type="checkbox">参考我的日程（发送标题、时间和地点）</label><div class="chat-compose-footer"><span>Enter 发送 · Shift+Enter 换行</span><button id="chat-send" class="button primary" type="submit" disabled>发送 ↗</button></div><p id="chat-privacy" class="chat-privacy">正在连接助手。对话记录按账号保存在本机数据库。</p></form>
+  </dialog>
+  <div id="toast" role="status" hidden></div>
+</body>
+</html>
