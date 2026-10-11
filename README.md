@@ -1,8 +1,31 @@
 # 留学手记
 
-留学生日常记录软件的可运行初版，适配电脑与手机浏览器。使用中文界面，包含账号、会员分类、课程表、考试表和日常记录。
+留学生日常记录软件的可运行初版，包含 Mac 桌面客户端，以及独立的电脑和手机界面。使用中文界面，包含账号、会员分类、课程表、考试表和日常记录。
 
-## 启动
+## 在 MacBook 上作为软件测试
+
+需要安装 Python 3.12 或更新版本（建议使用独立安装的 Python），首次准备依赖需要联网。在项目目录执行：
+
+```bash
+bash macos/run.command
+```
+
+脚本会自动建立独立依赖环境，然后打开「留学手记」软件窗口。无需打开浏览器，也无需手动启动后台或指定端口。关闭窗口时后台一并退出。使用系统 WebView 加载现有电脑版界面 [[1]](#ref-1)，当前客户端是桌面封装。
+
+要生成可双击启动的软件，执行：
+
+```bash
+bash macos/build.command
+open macos/dist/StudyAboard.app
+```
+
+生成的 `macos/dist/StudyAboard.app` 可拖入「应用程序」文件夹。打包包含 Python、后台与界面资源，之后启动这个应用不需要终端。必须在 Mac 上执行打包；产物对应当前 Mac 的处理器架构，打包方式参考应用打包文档 [[2]](#ref-2)。当前开发环境为 Linux，已检查启动与退出逻辑，但尚未在真实 macOS 上验证窗口及打包产物。
+
+桌面软件数据库保存在 `~/Library/Application Support/StudyAboard/journal.sqlite3`，日志在同目录的 `app.log` 和 `runtime.log`。更新或重新打包软件不会覆盖这里的数据。原网页版的数据库不会自动导入；如需迁移，请先关闭两种程序，再将原 `data/journal.sqlite3` 复制到上述位置，并先备份目标文件。Mac 和其他设备各自保存数据，当前没有云同步。首次打开可注册一个测试账号，检查日程、会员翻转卡片及本地聊天，然后关闭重开确认数据保留。
+
+手机版目前是独立的手机界面，还没有可安装的手机应用包。Mac 客户端内点击「查看手机版」可以预览和操作手机界面。
+
+## 网页开发模式启动
 
 需要 Python 3.12 或更新版本，无需安装第三方依赖。在项目目录执行：
 
@@ -30,6 +53,10 @@ python3 server.py
 数据默认保存在 `data/journal.sqlite3`，请备份整个数据库文件。不要将个人数据提交到代码仓库。可通过 `--db /path/to/journal.sqlite3` 指定数据库。
 
 ```text
+macos/
+  launcher.py      Mac 独立窗口与后台生命周期
+  run.command      启动桌面客户端
+  build.command    在 Mac 上打包 .app
 desktop/
   index.html       电脑版页面，入口 /desktop/
   style.css        电脑版布局与窗口宽度适配
@@ -49,7 +76,7 @@ data/              两端共用的 SQLite 数据库
 tests/             接口、助手与两端启动回归测试
 ```
 
-需要修改电脑版页面时编辑 `desktop/`，修改手机版页面时编辑 `mobile/`。两端通过同一组 `/api/` 接口访问同一个数据库，使用相同账号即可查看自己的日程与聊天记录。`shared/` 中的修改会同时影响两端，避免核心功能重复维护。当前两端均为浏览器网页应用。
+需要修改电脑版页面时编辑 `desktop/`，修改手机版页面时编辑 `mobile/`。两端通过同一组 `/api/` 接口访问同一个数据库，使用相同账号即可查看自己的日程与聊天记录。`shared/` 中的修改会同时影响两端，避免核心功能重复维护。Mac 客户端复用电脑版界面；电脑和手机的页面仍可用于浏览器开发调试。
 
 运行检查：
 
@@ -66,7 +93,7 @@ JOURNAL_TEST_CLIENT=mobile node tests/test_startup.cjs
 
 聊天记录保存在同一个 `data/journal.sqlite3` 的 `chat_messages` 表中，按账号隔离。界面读取最近 100 条消息；清空会删除该账号的全部聊天记录，保留课程、考试和日常记录。请求失败可以重新发送，完成过的同一条请求不会重复保存。
 
-若需要真正的通用 AI 对话，可配置服务器环境变量接入 Responses API [[1]](#ref-1)。在启动服务的同一个终端设置：
+若需要真正的通用 AI 对话，可配置服务器环境变量接入 Responses API [[3]](#ref-3)。在启动服务的同一个终端设置：
 
 ```bash
 read -rsp '输入 API 密钥：' OPENAI_API_KEY
@@ -89,4 +116,8 @@ AI 模式会发送本轮问题和最近最多 16 条符合当前日程授权状�
 
 ## References
 
-<a id="ref-1"></a>[1] OpenAI, “Text generation,” API documentation, 2026 (accessed 2026-10-09). [[url]](https://developers.openai.com/api/docs/guides/text)
+<a id="ref-1"></a>[1] pywebview contributors, “API,” documentation, 2026 (accessed 2026-10-11). [[url]](https://pywebview.flowrl.com/api/)
+
+<a id="ref-2"></a>[2] PyInstaller contributors, “Using PyInstaller,” documentation, 2026 (accessed 2026-10-11). [[url]](https://pyinstaller.org/en/stable/usage.html)
+
+<a id="ref-3"></a>[3] OpenAI, “Text generation,” API documentation, 2026 (accessed 2026-10-09). [[url]](https://developers.openai.com/api/docs/guides/text)

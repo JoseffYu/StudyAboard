@@ -2,5 +2,8 @@ data/
 __pycache__/
 *.pyc
 .venv/
+.venv-macos/
+macos/build/
+macos/dist/
 .env
 .env.*
