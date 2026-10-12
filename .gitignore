@@ -3,6 +3,8 @@ __pycache__/
 *.pyc
 .venv/
 .venv-macos/
+node_modules/
+npm-debug.log*
 macos/build/
 macos/dist/
 .env

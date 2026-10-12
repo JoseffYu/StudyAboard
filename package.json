@@ -1,0 +1,10 @@
+{
+  "name": "studyaboard",
+  "version": "0.1.0",
+  "private": true,
+  "description": "留学手记：留学生日程与日常记录桌面客户端",
+  "scripts": {
+    "start": "bash macos/run.command",
+    "build:mac": "bash macos/build.command"
+  }
+}

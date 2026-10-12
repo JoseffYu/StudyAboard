@@ -4,6 +4,15 @@
 
 ## 在 MacBook 上作为软件测试
 
+可以使用 npm 启动桌面软件。先安装 Node.js（包含 npm）和 Python 3.12 或更新版本，在下载好的项目目录执行：
+
+```bash
+npm install
+npm start
+```
+
+`npm start` 调用下方同一个 Mac 客户端启动脚本，打开独立软件窗口；首次启动会联网安装桌面依赖。当前后端仍使用 Python，因此只安装 Node.js 不够。关闭软件窗口后，后台和启动命令一起退出。需要打包时执行 `npm run build:mac`，生成 `macos/dist/StudyAboard.app`。也可以继续使用下面的脚本直接运行。
+
 需要安装 Python 3.12 或更新版本（建议使用独立安装的 Python），首次准备依赖需要联网。在项目目录执行：
 
 ```bash
