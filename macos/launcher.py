@@ -1,4 +1,5 @@
 """macOS application entry point; UI and backend share one process lifetime."""
+import argparse
 import logging
 from pathlib import Path
 import sys
@@ -15,7 +16,7 @@ class AppHandler(server.Handler):
         logging.info(format, *args)
 
 
-def run_app(webview, data_dir):
+def run_app(webview, data_dir, mobile=False):
     data_dir.mkdir(parents=True, exist_ok=True)
     server.DB = data_dir / 'journal.sqlite3'
     server.initialize()
@@ -23,10 +24,13 @@ def run_app(webview, data_dir):
     worker = threading.Thread(target=httpd.serve_forever, daemon=True)
     worker.start()
     try:
+        page = 'mobile' if mobile else 'desktop'
         webview.create_window(
-            '留学手记 · StudyAboard',
-            f'http://127.0.0.1:{httpd.server_port}/desktop/',
-            width=1280, height=860, min_size=(960, 640),
+            '留学手记 · 手机版预览' if mobile else '留学手记 · StudyAboard',
+            f'http://127.0.0.1:{httpd.server_port}/{page}/',
+            width=390 if mobile else 1280,
+            height=844 if mobile else 860,
+            min_size=(320, 568) if mobile else (960, 640),
             text_select=True,
         )
         webview.start(private_mode=False, storage_path=str(data_dir / 'webview'))
@@ -37,6 +41,9 @@ def run_app(webview, data_dir):
 
 
 def main():
+    parser = argparse.ArgumentParser(description='留学手记桌面客户端')
+    parser.add_argument('--mobile', action='store_true', help='以手机尺寸打开手机版界面')
+    args = parser.parse_args()
     if sys.platform != 'darwin':
         raise SystemExit('桌面客户端请在 macOS 上运行。')
     data_dir = Path.home() / 'Library' / 'Application Support' / 'StudyAboard'
@@ -50,7 +57,7 @@ def main():
         sys.stderr = sys.stderr or log
         try:
             import webview
-            run_app(webview, data_dir)
+            run_app(webview, data_dir, mobile=args.mobile)
         except Exception:
             logging.exception('Application startup failed')
             # Native alert also works before the main webview is available.

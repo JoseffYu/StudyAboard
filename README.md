@@ -32,7 +32,7 @@ open macos/dist/StudyAboard.app
 
 桌面软件数据库保存在 `~/Library/Application Support/StudyAboard/journal.sqlite3`，日志在同目录的 `app.log` 和 `runtime.log`。更新或重新打包软件不会覆盖这里的数据。原网页版的数据库不会自动导入；如需迁移，请先关闭两种程序，再将原 `data/journal.sqlite3` 复制到上述位置，并先备份目标文件。Mac 和其他设备各自保存数据，当前没有云同步。首次打开可注册一个测试账号，检查日程、会员翻转卡片及本地聊天，然后关闭重开确认数据保留。
 
-手机版目前是独立的手机界面，还没有可安装的手机应用包。Mac 客户端内点击「查看手机版」可以预览和操作手机界面。
+手机版目前是独立的手机界面，还没有可安装的手机应用包。Mac 客户端的登录页、登录后的左侧导航和页面底部均有「查看手机版」入口，可以预览和操作手机界面。也可以执行 `npm run start:mobile`，直接用 390 × 844 的窗口打开手机版，使用同一个本地数据库；这用于检查手机版布局和功能，不模拟手机操作系统。若需要明确指定 Python，执行 `STUDYABOARD_PYTHON=python3.13 npm run start:mobile`。
 
 ## 网页开发模式启动
 

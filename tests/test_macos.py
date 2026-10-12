@@ -7,6 +7,19 @@ from macos import launcher
 
 
 class MacAppTests(unittest.TestCase):
+    def test_mobile_preview_opens_phone_layout(self):
+        with tempfile.TemporaryDirectory() as folder:
+            webview = Mock()
+            httpd = Mock(server_port=49154)
+            with patch.object(launcher.server, 'DB'), \
+                    patch.object(launcher.server, 'ThreadingHTTPServer', return_value=httpd):
+                launcher.run_app(webview, Path(folder), mobile=True)
+            self.assertEqual(webview.create_window.call_args.args[1],
+                             'http://127.0.0.1:49154/mobile/')
+            self.assertEqual(webview.create_window.call_args.kwargs['width'], 390)
+            self.assertEqual(webview.create_window.call_args.kwargs['min_size'], (320, 568))
+            httpd.shutdown.assert_called_once()
+
     def test_native_window_uses_isolated_database_and_stops_backend(self):
         with tempfile.TemporaryDirectory() as folder:
             data_dir = Path(folder) / 'Application Support' / 'StudyAboard'

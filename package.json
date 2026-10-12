@@ -5,6 +5,7 @@
   "description": "留学手记：留学生日程与日常记录桌面客户端",
   "scripts": {
     "start": "bash macos/run.command",
+    "start:mobile": "bash macos/run.command --mobile",
     "build:mac": "bash macos/build.command"
   }
 }
