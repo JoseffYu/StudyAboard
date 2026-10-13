@@ -1,7 +1,7 @@
 'use strict';
 const $ = (selector) => document.querySelector(selector);
 const $$ = (selector) => [...document.querySelectorAll(selector)];
-const labels = { all: '日程总览', course: '课程表', exam: '考试表', daily: '日常记录', membership: '我的会员' };
+const labels = { home: '会员首页', all: '日程总览', course: '课程表', exam: '考试表', daily: '日常记录', membership: '我的会员' };
 const tiers = { basic: '普通会员', plus: 'Plus 会员', pro: 'Pro 会员' };
 const kindLabels = { course: '课程', exam: '考试', daily: '日常' };
 const state = { user: null, entries: [], view: 'all', filter: 'all', mode: 'list', month: new Date(new Date().getFullYear(), new Date().getMonth(), 1), date: '', auth: 'login', deleteId: null };
@@ -53,7 +53,7 @@ function showAuth() {
 }
 async function enterWorkspace() {
   state.entries = await api('entries');
-  state.view = 'all'; state.filter = 'all'; state.date = ''; state.mode = 'list';
+  state.view = 'home'; state.filter = 'all'; state.date = ''; state.mode = 'list';
   $('#search').value = '';
   $('#hide-done').checked = false;
   $('#auth-form').reset();
@@ -95,7 +95,7 @@ $('#logout').addEventListener('click', async () => {
 });
 function setView(view) {
   flipMemberCard(false);
-  state.view = view; state.filter = view === 'membership' ? 'all' : view; state.date = '';
+  state.view = view; state.filter = ['membership', 'home'].includes(view) ? 'all' : view; state.date = '';
   $('#search').value = '';
   render();
 }
@@ -140,18 +140,22 @@ function filteredEntries() {
 }
 function render() {
   const membership = state.view === 'membership';
-  $('#member-card').hidden = state.view !== 'all';
+  const home = state.view === 'home';
+  $('#workspace').dataset.view = state.view;
+  $('#home-content').hidden = !home;
+  $('#home-owner').textContent = `${state.user.name} 的专属留学手记`;
+  $('#member-card').hidden = !home;
   $('#member-card').dataset.tier = state.user.membership;
   $('#member-card-tier').textContent = tiers[state.user.membership];
-  $('#member-card-owner').textContent = `${state.user.name} 的留学旅程`;
+  $('#member-card-owner').textContent = state.user.name;
   $('#member-card-code').textContent = `${state.user.membership.toUpperCase()} MEMBER`;
   $('#member-card-front').setAttribute('aria-label', `${tiers[state.user.membership]}，翻转查看会员权益`);
-  $('#schedule-content').hidden = membership;
+  $('#schedule-content').hidden = membership || home;
   $('#membership-content').hidden = !membership;
-  $('#new-entry').hidden = membership;
+  $('#new-entry').hidden = membership || home;
   $('#breadcrumb').textContent = labels[state.view];
-  $('#page-title').textContent = { all: '让日常，井井有条。', course: '每一堂课，都有安排。', exam: '从容迎接每一场考试。', daily: '把生活的小事，收好。', membership: '陪伴你的每一段旅程。' }[state.view];
-  $('#page-description').textContent = { all: '课程、考试与生活，把每一件小事安放好。', course: '记录课程、教室与学习事项，时间可以稍后补充。', exam: '记录考试与准备事项，确定时间后随时更新。', daily: '记录待办，也写下异国生活中的小小感受。', membership: '查看你的会员等级，以及后续的权益规划。' }[state.view];
+  $('#page-title').textContent = { home: '你的世界，正在展开。', all: '让日常，井井有条。', course: '每一堂课，都有安排。', exam: '从容迎接每一场考试。', daily: '把生活的小事，收好。', membership: '陪伴你的每一段旅程。' }[state.view];
+  $('#page-description').textContent = { home: '每一程，都值得。', all: '课程、考试与生活，把每一件小事安放好。', course: '记录课程、教室与学习事项，时间可以稍后补充。', exam: '记录考试与准备事项，确定时间后随时更新。', daily: '记录待办，也写下异国生活中的小小感受。', membership: '查看你的会员等级，以及后续的权益规划。' }[state.view];
   $$('[data-view]').forEach(b => { const active = b.dataset.view === state.view; b.classList.toggle('active', active); b.setAttribute('aria-current', active ? 'page' : 'false'); });
   const weekStart = new Date(); weekStart.setHours(0, 0, 0, 0); weekStart.setDate(weekStart.getDate() - (weekStart.getDay() + 6) % 7);
   const weekEnd = new Date(weekStart); weekEnd.setDate(weekEnd.getDate() + 7);
@@ -358,3 +362,5 @@ $('#chat-clear').addEventListener('click', async () => {
     $('#auth-submit').disabled = false;
   }
 })();
+
+$('#home-chat').addEventListener('click', () => $('#chat-launcher').click());

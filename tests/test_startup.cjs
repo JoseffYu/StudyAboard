@@ -153,3 +153,26 @@ test('chat reply arriving after logout cannot leak into the next session', async
   assert.equal(env.nodes.get('chat-messages').textContent, '');
   assert.equal(env.nodes.get('chat-launcher').hidden, true);
 });
+
+test('member home opens first and navigation reveals schedule and membership', async () => {
+  const env = environment(async path => jsonResponse(200,
+    path === '/api/me' ? { id: 1, name: 'Yu', membership: 'basic' } : []));
+  env.nodes.get('auth-form').reset = () => {};
+  env.nodes.set('empty-new', { addEventListener() {} });
+  vm.runInContext(app, env.context); await flush();
+  assert.equal(env.nodes.get('home-content').hidden, false);
+  assert.equal(env.nodes.get('schedule-content').hidden, true);
+  assert.equal(env.nodes.get('member-card-owner').textContent, 'Yu');
+  assert.equal(env.nodes.get('member-card-tier').textContent, '普通会员');
+  vm.runInContext("setView('all')", env.context);
+  assert.equal(env.nodes.get('home-content').hidden, true);
+  assert.equal(env.nodes.get('schedule-content').hidden, false);
+  assert.equal(env.nodes.get('new-entry').hidden, false);
+  vm.runInContext("setView('membership')", env.context);
+  assert.equal(env.nodes.get('membership-content').hidden, false);
+  assert.equal(env.nodes.get('schedule-content').hidden, true);
+  vm.runInContext("setView('home'); flipMemberCard(true)", env.context);
+  assert.equal(env.nodes.get('home-content').hidden, false);
+  assert.equal(env.nodes.get('member-card-front').inert, true);
+  assert.equal(env.nodes.get('member-card-back').inert, false);
+});

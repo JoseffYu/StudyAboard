@@ -139,6 +139,7 @@ class Handler(BaseHTTPRequestHandler):
         files.update({
             '/shared/app.js': ('shared/app.js', 'text/javascript; charset=utf-8'),
             '/shared/startup.js': ('shared/startup.js', 'text/javascript; charset=utf-8'),
+            '/shared/aurora.css': ('shared/aurora.css', 'text/css; charset=utf-8'),
             '/shared/base.css': ('shared/base.css', 'text/css; charset=utf-8'),
             '/shared/favicon.svg': ('shared/favicon.svg', 'image/svg+xml'),
             '/desktop/style.css': ('desktop/style.css', 'text/css; charset=utf-8'),

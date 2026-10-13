@@ -44,7 +44,7 @@ python3 server.py
 
 在浏览器打开 `http://127.0.0.1:8080`，注册自己的账号即可使用。停止服务按 Ctrl+C。若端口被占用，可执行 `python3 server.py --port 8081`。
 
-电脑端与手机端使用独立的页面和样式文件夹。默认首页 `/` 打开电脑版，明确访问 `/desktop/` 为电脑版、`/mobile/` 为手机版。在电脑上可以访问 `/mobile-preview`，在手机尺寸窗口中操作手机版。手机版包含底部五项导航、会员翻转卡片和全屏聊天。目录拆分后需要重启服务。`previews/mobile-home.png` 和 `previews/mobile-chat.png` 是使用示例账号生成的界面截图，不含真实个人数据。
+电脑端与手机端使用独立的页面和样式文件夹。默认首页 `/` 打开电脑版，明确访问 `/desktop/` 为电脑版、`/mobile/` 为手机版。在电脑上可以访问 `/mobile-preview`，在手机尺寸窗口中操作手机版。手机版采用紫色渐变会员首页，底部为「首页 / 日程 / 我的」三项导航；课程、考试和日常筛选在日程页，首页提供会员权益、日程与聊天快捷入口。银白会员卡支持点击翻转，卡面昵称和等级取自当前账号。电脑端采用相同配色，保留侧栏导航与宽屏布局。目录拆分后需要重启服务。`previews/mobile-home.png`、`previews/mobile-chat.png` 和 `previews/desktop-home.png` 是使用示例数据和模拟接口生成的新版界面截图，不含真实个人数据。
 
 ## 当前功能
 
@@ -75,7 +75,8 @@ mobile/
   preview.html     电脑上的手机预览，入口 /mobile-preview
   preview.css      手机预览外框样式
 shared/
-  base.css         两端共用的组件样式
+  base.css         两端共用的基础组件样式
+  aurora.css       两端共用的紫色主题、银白会员卡与首页布局
   app.js           两端共用的账号、会员、日程与聊天逻辑
   startup.js       页面启动异常提示
   favicon.svg      应用图标

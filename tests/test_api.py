@@ -105,7 +105,7 @@ class ApiTests(unittest.TestCase):
         status, body, _ = self.request('GET', '/')
         self.assertEqual(status, 200)
         self.assertIn('留学手记'.encode(), body)
-        for path in ('/shared/base.css', '/desktop/style.css', '/mobile/style.css', '/mobile/preview.css', '/shared/startup.js', '/shared/app.js', '/favicon.svg', '/desktop/', '/mobile/', '/mobile-preview'):
+        for path in ('/shared/aurora.css', '/shared/base.css', '/desktop/style.css', '/mobile/style.css', '/mobile/preview.css', '/shared/startup.js', '/shared/app.js', '/favicon.svg', '/desktop/', '/mobile/', '/mobile-preview'):
             self.assertEqual(self.request('GET', path)[0], 200)
         desktop = self.request('GET', '/desktop/')[1].decode()
         mobile = self.request('GET', '/mobile/')[1].decode()
