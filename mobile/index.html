@@ -64,11 +64,10 @@
     <button type="button" id="member-card-front" class="member-face member-front" aria-label="翻转会员卡，查看会员权益">
       <span class="member-topline"><span class="member-wordmark">留学手记 <span>STUDY JOURNAL</span></span><span id="member-card-code">BASIC MEMBER</span></span>
       <svg class="silver-orbit" viewBox="0 0 250 260" aria-hidden="true"><defs><linearGradient id="silver" x1="0" y1="0" x2="1" y2=".8"><stop stop-color="#72767d"/><stop offset=".2" stop-color="#e5e9ee"/><stop offset=".4" stop-color="#fafcff"/><stop offset=".55" stop-color="#9a9ea5"/><stop offset=".72" stop-color="#626773"/><stop offset=".87" stop-color="#e2e5e9"/><stop offset="1" stop-color="#999da5"/></linearGradient><linearGradient id="edge" x2="1" y2="1"><stop stop-color="#fff"/><stop offset=".5" stop-color="#a3a8b1"/><stop offset="1" stop-color="#e8eaf3"/></linearGradient></defs><g transform="rotate(34 125 130)"><ellipse cx="125" cy="130" rx="63" ry="103" fill="none" stroke="url(#silver)" stroke-width="27"/><ellipse cx="125" cy="130" rx="77" ry="117" fill="none" stroke="url(#edge)" stroke-width="1"/></g></svg>
-      <span class="card-motto">每一程，<br>皆有迹。</span>
       <span class="member-bottomline"><span><small>CARDHOLDER</small><span id="member-card-owner" class="member-owner"></span></span><span class="member-since"><small>YOUR NEXT CHAPTER</small>每一程，都值得。</span></span>
     </button>
-    <div id="member-card-back" class="member-face member-back" aria-hidden="true" inert>
-      <div class="member-topline"><span class="member-wordmark">你的会员权益</span><button type="button" id="member-card-return" class="member-return">返回正面 ↻</button></div>
+    <div id="member-card-back" class="member-face member-back" role="group" tabindex="0" aria-label="会员权益，轻触或按回车翻回正面" aria-hidden="true" inert>
+      <div class="member-topline"><span class="member-wordmark">你的会员权益</span></div>
       <div class="member-benefits"><span>▤ 课程与考试安排</span><span>✎ 日常记录与备注</span><span>▦ 列表与月历查看</span><span>✓ 个人记录独立保存</span></div>
       <div class="member-bottomline"><span>基础功能均已开放</span><button type="button" id="member-card-details" class="member-details">查看会员等级 ↗</button></div>
     </div>

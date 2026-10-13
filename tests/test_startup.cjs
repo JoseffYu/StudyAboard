@@ -171,8 +171,22 @@ test('member home opens first and navigation reveals schedule and membership', a
   vm.runInContext("setView('membership')", env.context);
   assert.equal(env.nodes.get('membership-content').hidden, false);
   assert.equal(env.nodes.get('schedule-content').hidden, true);
-  vm.runInContext("setView('home'); flipMemberCard(true)", env.context);
+  vm.runInContext("setView('home')", env.context);
+  env.nodes.get('member-card-front').handlers.click();
   assert.equal(env.nodes.get('home-content').hidden, false);
   assert.equal(env.nodes.get('member-card-front').inert, true);
   assert.equal(env.nodes.get('member-card-back').inert, false);
+  assert.equal(env.nodes.has('member-card-return'), false);
+  const back = env.nodes.get('member-card-back');
+  back.handlers.click({ target: { closest: () => ({ tagName: 'BUTTON' }) } });
+  assert.equal(back.inert, false); // The membership details button keeps its own action.
+  back.handlers.click({ target: { closest: () => null } });
+  assert.equal(back.inert, true);
+  assert.equal(env.nodes.get('member-card-front').inert, false);
+  env.nodes.get('member-card-front').handlers.click();
+  let prevented = false;
+  back.handlers.keydown({ target: back, currentTarget: back, key: 'Enter',
+    preventDefault() { prevented = true; } });
+  assert.equal(prevented, true);
+  assert.equal(back.inert, true);
 });

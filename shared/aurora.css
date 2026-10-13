@@ -21,3 +21,5 @@ input:not([type=checkbox]),textarea,select{background:#ffffff08;border-color:#c3
 @media(prefers-reduced-motion:reduce){.member-card-inner{transition:none}}
 .auth-tabs{background:#ffffff08}.auth-tabs button.selected{background:#cbb1ff22}.brand img{filter:none}.empty-icon{background:#bfa6ff15}.paper-circle{background:#e1dbea}.paper-art .paper-label{color:#827594}.paper-line{background:#bcb0cf}.paper-spark{color:#c1a7ed}.chat-logo{background:#d0b4ff20;color:#d5bfff}.chat-compose-footer .button{background:#bba0e9;color:#211a35}
 .member-topline{z-index:1}.chat-welcome>span{color:#c8aff1}.nav-dot{display:none}.nav-item.active .nav-dot{display:block}
+
+.member-back{cursor:pointer}.member-back:focus-visible{outline:3px solid #fff;outline-offset:4px}

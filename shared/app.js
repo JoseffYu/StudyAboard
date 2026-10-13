@@ -106,10 +106,18 @@ function flipMemberCard(flipped, moveFocus = false) {
   $('#member-card-front').setAttribute('aria-hidden', String(flipped));
   $('#member-card-back').inert = !flipped;
   $('#member-card-back').setAttribute('aria-hidden', String(!flipped));
-  if (moveFocus) $(flipped ? '#member-card-return' : '#member-card-front').focus();
+  if (moveFocus) $(flipped ? '#member-card-back' : '#member-card-front').focus();
 }
 $('#member-card-front').addEventListener('click', () => flipMemberCard(true, true));
-$('#member-card-return').addEventListener('click', () => flipMemberCard(false, true));
+$('#member-card-back').addEventListener('click', event => {
+  if (!event.target.closest('button, a')) flipMemberCard(false, true);
+});
+$('#member-card-back').addEventListener('keydown', event => {
+  if (event.target === event.currentTarget && ['Enter', ' '].includes(event.key)) {
+    event.preventDefault();
+    flipMemberCard(false, true);
+  }
+});
 $('#member-card-details').addEventListener('click', () => {
   setView('membership');
   $('#page-title').setAttribute('tabindex', '-1');
