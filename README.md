@@ -11,7 +11,7 @@ npm install
 npm start
 ```
 
-`npm start` 调用下方同一个 Mac 客户端启动脚本，打开独立软件窗口；首次启动会联网安装桌面依赖。当前后端仍使用 Python，因此只安装 Node.js 不够。关闭软件窗口后，后台和启动命令一起退出。需要打包时执行 `npm run build:mac`，生成 `macos/dist/StudyAboard.app`。也可以继续使用下面的脚本直接运行。
+`npm start` 调用下方同一个 Mac 客户端启动脚本，打开独立软件窗口；首次启动会联网安装桌面依赖。当前后端仍使用 Python，因此只安装 Node.js 不够。关闭软件窗口后，后台和启动命令一起退出。`npm run build:mac` 只生成供本机测试的 `macos/dist/StudyAboard.app`，它没有使用你的 Developer ID，不能作为正式外发包。也可以继续使用下面的脚本直接运行。
 
 需要安装 Python 3.12 或更新版本（建议使用独立安装的 Python），首次准备依赖需要联网。在项目目录执行：
 
@@ -28,7 +28,35 @@ bash macos/build.command
 open macos/dist/StudyAboard.app
 ```
 
-生成的 `macos/dist/StudyAboard.app` 可拖入「应用程序」文件夹。打包包含 Python、后台与界面资源，之后启动这个应用不需要终端。必须在 Mac 上执行打包；产物对应当前 Mac 的处理器架构，打包方式参考应用打包文档 [[2]](#ref-2)。当前开发环境为 Linux，已检查启动与退出逻辑，但尚未在真实 macOS 上验证窗口及打包产物。
+生成的 `macos/dist/StudyAboard.app` 可在本机拖入「应用程序」文件夹测试。打包包含 Python、后台与界面资源，之后启动这个应用不需要终端。必须在 Mac 上执行打包；产物对应当前 Mac 的处理器架构，打包方式参考应用打包文档 [[2]](#ref-2)。当前开发环境为 Linux，已检查启动与退出逻辑，但尚未在真实 macOS 上验证窗口及打包产物。
+
+## 生成可外发的签名 DMG
+
+直接在网站等 Mac App Store 以外的渠道分发时，应使用 `Developer ID Application` 证书签名并提交 Apple 公证；把公证票据装订到发行包后，Gatekeeper 才能在离线状态验证它 [[3]](#ref-3)[[4]](#ref-4)。这需要有效的 Apple Developer Program 会员资格、安装在当前 Mac 钥匙串里的 Developer ID Application 证书，以及 Xcode 13 或更新版本。
+
+先在 Xcode 的账号设置或 Apple Developer 网站创建并安装 `Developer ID Application` 证书，然后查看证书的完整名称：
+
+```bash
+security find-identity -v -p codesigning
+```
+
+为 `notarytool` 创建一个钥匙串凭据。下面的命令会交互式询问 Apple ID 的 app-specific password，不要把密码写进仓库：
+
+```bash
+xcrun notarytool store-credentials "StudyAboard-notary" \
+  --apple-id "你的 Apple ID" \
+  --team-id "你的 Team ID"
+```
+
+配置一次后，执行完整发行流程。把签名身份替换为上一条 `security` 命令显示的完整内容：
+
+```bash
+APPLE_SIGNING_IDENTITY="Developer ID Application: 你的姓名 (TEAMID)" \
+APPLE_NOTARY_PROFILE="StudyAboard-notary" \
+npm run release:mac
+```
+
+脚本会依次使用 Developer ID 和 Hardened Runtime 构建 `.app`、验证签名、创建并签名 `.dmg`、上传 Apple 公证、等待结果、装订公证票据，并运行 Gatekeeper 验证。成功产物位于 `macos/dist/StudyAboard-0.1.0-<架构>.dmg`。默认只支持构建它的 Mac 当前架构；需要 universal2 时可以额外设置 `STUDYABOARD_TARGET_ARCH=universal2`，但 Python 和所有二进制依赖也必须包含两个架构。
 
 桌面软件数据库保存在 `~/Library/Application Support/StudyAboard/journal.sqlite3`，日志在同目录的 `app.log` 和 `runtime.log`。更新或重新打包软件不会覆盖这里的数据。原网页版的数据库不会自动导入；如需迁移，请先关闭两种程序，再将原 `data/journal.sqlite3` 复制到上述位置，并先备份目标文件。Mac 和其他设备各自保存数据，当前没有云同步。首次打开可注册一个测试账号，检查日程、会员翻转卡片及本地聊天，然后关闭重开确认数据保留。
 
@@ -66,6 +94,7 @@ macos/
   launcher.py      Mac 独立窗口与后台生命周期
   run.command      启动桌面客户端
   build.command    在 Mac 上打包 .app
+  release.command  签名、公证并生成可外发 .dmg
 desktop/
   index.html       电脑版页面，入口 /desktop/
   style.css        电脑版布局与窗口宽度适配
@@ -103,7 +132,7 @@ JOURNAL_TEST_CLIENT=mobile node tests/test_startup.cjs
 
 聊天记录保存在同一个 `data/journal.sqlite3` 的 `chat_messages` 表中，按账号隔离。界面读取最近 100 条消息；清空会删除该账号的全部聊天记录，保留课程、考试和日常记录。请求失败可以重新发送，完成过的同一条请求不会重复保存。
 
-若需要真正的通用 AI 对话，可配置服务器环境变量接入 Responses API [[3]](#ref-3)。在启动服务的同一个终端设置：
+若需要真正的通用 AI 对话，可配置服务器环境变量接入 Responses API [[5]](#ref-5)。在启动服务的同一个终端设置：
 
 ```bash
 read -rsp '输入 API 密钥：' OPENAI_API_KEY
@@ -130,4 +159,8 @@ AI 模式会发送本轮问题和最近最多 16 条符合当前日程授权状�
 
 <a id="ref-2"></a>[2] PyInstaller contributors, “Using PyInstaller,” documentation, 2026 (accessed 2026-10-11). [[url]](https://pyinstaller.org/en/stable/usage.html)
 
-<a id="ref-3"></a>[3] OpenAI, “Text generation,” API documentation, 2026 (accessed 2026-10-09). [[url]](https://developers.openai.com/api/docs/guides/text)
+<a id="ref-3"></a>[3] Apple, “Developer ID certificates,” Apple Developer documentation, 2026 (accessed 2026-10-14). [[url]](https://developer.apple.com/help/account/certificates/create-developer-id-certificates/)
+
+<a id="ref-4"></a>[4] Apple, “Customizing the notarization workflow,” Apple Developer documentation, 2026 (accessed 2026-10-14). [[url]](https://developer.apple.com/documentation/security/customizing-the-notarization-workflow)
+
+<a id="ref-5"></a>[5] OpenAI, “Text generation,” API documentation, 2026 (accessed 2026-10-09). [[url]](https://developers.openai.com/api/docs/guides/text)

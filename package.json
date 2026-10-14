@@ -6,6 +6,7 @@
   "scripts": {
     "start": "bash macos/run.command",
     "start:mobile": "bash macos/run.command --mobile",
-    "build:mac": "bash macos/build.command"
+    "build:mac": "bash macos/build.command",
+    "release:mac": "bash macos/release.command"
   }
 }
