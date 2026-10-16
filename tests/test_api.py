@@ -99,13 +99,16 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(self.request('POST', '/api/entries', valid, cookie, {'Origin': 'https://evil.example'})[0], 403)
         self.assertEqual(self.request('POST', '/api/entries', valid, cookie, {'X-Journal-Request': ''})[0], 403)
         self.assertEqual(self.request('POST', '/api/entries', {**valid, 'end': '16:00'}, cookie)[0], 200)
+        status, assignment, _ = self.request('POST', '/api/entries', {'kind': 'assignment', 'title': '研究报告', 'date': '2027-01-20'}, cookie)
+        self.assertEqual(status, 200)
+        self.assertEqual(assignment['kind'], 'assignment')
         self.assertEqual(self.request('GET', '/../../server.py')[0], 404)
 
     def test_static_page(self):
         status, body, _ = self.request('GET', '/')
         self.assertEqual(status, 200)
         self.assertIn('留学手记'.encode(), body)
-        for path in ('/shared/aurora.css', '/shared/base.css', '/desktop/style.css', '/mobile/style.css', '/mobile/preview.css', '/shared/startup.js', '/shared/app.js', '/favicon.svg', '/desktop/', '/mobile/', '/mobile-preview'):
+        for path in ('/shared/aurora.css', '/shared/base.css', '/shared/guidance.css', '/desktop/style.css', '/mobile/style.css', '/mobile/preview.css', '/shared/startup.js', '/shared/app.js', '/favicon.svg', '/desktop/', '/mobile/', '/mobile-preview'):
             self.assertEqual(self.request('GET', path)[0], 200)
         desktop = self.request('GET', '/desktop/')[1].decode()
         mobile = self.request('GET', '/mobile/')[1].decode()

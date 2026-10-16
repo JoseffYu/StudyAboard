@@ -141,6 +141,7 @@ class Handler(BaseHTTPRequestHandler):
             '/shared/startup.js': ('shared/startup.js', 'text/javascript; charset=utf-8'),
             '/shared/aurora.css': ('shared/aurora.css', 'text/css; charset=utf-8'),
             '/shared/base.css': ('shared/base.css', 'text/css; charset=utf-8'),
+            '/shared/guidance.css': ('shared/guidance.css', 'text/css; charset=utf-8'),
             '/shared/favicon.svg': ('shared/favicon.svg', 'image/svg+xml'),
             '/desktop/style.css': ('desktop/style.css', 'text/css; charset=utf-8'),
             '/mobile/style.css': ('mobile/style.css', 'text/css; charset=utf-8'),
@@ -239,7 +240,7 @@ class Handler(BaseHTTPRequestHandler):
                     if not isinstance(value, str) or len(value) > limit:
                         raise FormError('字段格式有误或内容过长')
                     values[key] = value.strip()
-                if values['kind'] not in ('course', 'exam', 'daily') or not values['title']:
+                if values['kind'] not in ('course', 'exam', 'daily', 'assignment') or not values['title']:
                     raise FormError('请选择类型并填写标题')
                 if values['date']:
                     if not re.fullmatch(r'\d{4}-\d{2}-\d{2}', values['date']):

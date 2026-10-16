@@ -60,7 +60,7 @@ def local_reply(message, history, entries, today, membership):
     selected.sort(key=lambda entry: (not bool(entry['date']), entry['date'], entry['start'], entry['id']))
     if not selected:
         return f'你还没有记录符合条件的{scope}。可以通过“新建日程”添加课程、考试或日常事项，日期和时间都可以留空。'
-    names = {'course': '课程', 'exam': '考试', 'daily': '日常'}
+    names = {'course': '课程', 'exam': '考试', 'daily': '日常', 'assignment': '作业'}
     lines = []
     for entry in selected[:20]:
         when = entry['date'] or '日期待定'

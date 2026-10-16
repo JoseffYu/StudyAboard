@@ -1,0 +1,90 @@
+/* Focused home, important-matters overview, and AI preview shared by both clients. */
+.chat-launcher,.chat-dialog{display:none!important}
+.nav-item.selected{background:#afa0ff22;color:#eee9ff}
+.profile{width:100%;font:inherit;color:inherit;text-align:left;cursor:pointer}
+.profile>span:last-child{margin-left:auto;color:#aaa4c8;font-size:22px}
+.home-content{display:block;min-height:calc(100dvh - 90px);padding:38px 0}
+.home-membership{max-width:600px;padding:40px 46px 34px}
+.membership-intro{margin-bottom:34px}
+.membership-intro p{font-size:10px;letter-spacing:4px}
+.membership-intro h2{margin:12px 0 0;font-size:34px}
+.member-card{position:relative;margin:0 auto;transform:rotate(-4deg);transition:filter .35s ease,transform .35s ease}
+.member-card:hover{transform:rotate(-2deg) translateY(-3px)}
+.member-card::after{content:"";position:absolute;inset:-16%;z-index:-1;border-radius:50%;background:radial-gradient(circle,#c9baff70 0,transparent 64%);opacity:0;transform:scale(.7);pointer-events:none}
+.member-card.is-glowing::after{animation:cardGlow .65s ease-out}
+.member-card.is-glowing{filter:drop-shadow(0 22px 22px #090b2955) drop-shadow(0 0 18px #cfc5ff80)}
+@keyframes cardGlow{0%{opacity:0;transform:scale(.7)}38%{opacity:1}100%{opacity:0;transform:scale(1.12)}}
+.flip-caption{margin:32px 0 0}
+.important-overview{max-width:1050px}
+.important-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.important-card{position:relative;display:flex;min-height:250px;flex-direction:column;align-items:flex-start;padding:26px;border:1px solid #d8ceff22;border-radius:24px;background:linear-gradient(155deg,#302a5ee8,#1d1938e8);color:#f6f1ff;text-align:left;box-shadow:0 18px 45px #090a2026;overflow:hidden}
+button.important-card{cursor:pointer;transition:transform .2s ease,border-color .2s ease}
+button.important-card:hover{transform:translateY(-3px);border-color:#cfc1ff66}
+.important-card::after{content:"";position:absolute;width:180px;height:180px;right:-75px;bottom:-95px;border-radius:50%;background:#9b86ff1c}
+.important-card.holiday{background:radial-gradient(circle at 100% 0,#f6cb7870,transparent 48%),linear-gradient(155deg,#6b53c7,#382b7b)}
+.important-card.assignment{background:radial-gradient(circle at 100% 0,#78d8cc55,transparent 48%),linear-gradient(155deg,#31556d,#252c58)}
+.important-card.exam{background:radial-gradient(circle at 100% 0,#d996da55,transparent 48%),linear-gradient(155deg,#62427c,#302753)}
+.important-icon{display:grid;place-items:center;width:42px;height:42px;margin-bottom:auto;border:1px solid #ffffff38;border-radius:50%;background:#ffffff12;font-size:20px}
+.important-label{margin-top:27px;color:#d9d1ed;font-size:13px;letter-spacing:.5px}
+.important-card strong{margin:9px 0 8px;font-size:38px;font-weight:500;letter-spacing:-1px}
+.important-card small{min-height:38px;color:#cfc7dd;font-size:12px;line-height:1.6}
+.important-link{position:relative;z-index:1;margin-top:12px;color:#eee7ff;font-size:11px}
+.overview-note{display:flex;align-items:center;gap:20px;margin-top:18px;padding:18px 22px;border:1px solid #d8ceff1a;border-radius:18px;background:#19162f88;color:#aaa2bf}
+.overview-note>span{flex:none;color:#e7defd;font-size:11px;letter-spacing:2px}
+.overview-note p{margin:0;font-size:11px;line-height:1.7}
+.overview-note button{margin-left:auto;white-space:nowrap;color:#c9baff}
+.ai-page{max-width:920px;height:min(640px,calc(100dvh - 220px));min-height:430px}
+.ai-shell{display:flex;height:100%;flex-direction:column;border:1px solid #d8ceff22;border-radius:24px;background:#19162fd9;box-shadow:0 22px 60px #090a202b;overflow:hidden}
+.ai-header{display:flex;align-items:center;gap:14px;padding:20px 24px;border-bottom:1px solid #ffffff12}
+.ai-header>span,.ai-message.assistant>span{display:grid;place-items:center;width:36px;height:36px;flex:none;border-radius:12px;background:linear-gradient(145deg,#a895ff,#6550cd);color:white}
+.ai-header h2{margin:0 0 3px;font-size:17px}.ai-header small{color:#968dac;font-size:10px}
+.ai-messages{display:flex;flex:1;flex-direction:column;gap:22px;padding:32px;overflow:auto}
+.ai-message{display:flex;align-items:flex-start;gap:12px;max-width:75%}.ai-message p{margin:0;padding:13px 16px;border-radius:5px 18px 18px;background:#292447;color:#eee9f7;font-size:13px;line-height:1.8}
+.ai-message.assistant>span{width:30px;height:30px;border-radius:10px;font-size:12px}.ai-message.user{align-self:flex-end}.ai-message.user p{border-radius:18px 5px 18px 18px;background:#7b67df;color:white}
+.ai-composer{display:grid;grid-template-columns:1fr auto;gap:10px;margin:0 24px 24px;padding:8px 9px 8px 16px;border:1px solid #d5cbff35;border-radius:19px;background:#24203f}
+.ai-composer label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+.ai-composer textarea{min-height:42px;max-height:90px;margin:0;padding:10px 0;border:0;background:transparent;color:white;resize:none;box-shadow:none}
+.ai-composer button{align-self:end;width:40px;height:40px;border-radius:13px;background:#a895ff;color:#1c1738;font-size:20px;cursor:pointer}
+.profile-page{display:grid;place-items:start center}.profile-card{width:min(100%,480px);padding:40px;border:1px solid #d8ceff22;border-radius:26px;background:linear-gradient(155deg,#2c2751,#1a1732);text-align:center;box-shadow:0 18px 50px #090a2026}
+.profile-avatar-large{display:grid;place-items:center;width:82px;height:82px;margin:0 auto 18px;border:1px solid #ffffff3b;border-radius:50%;background:#ad9cff27;color:white;font-size:28px}
+.profile-card h2{margin:0 0 7px;font-size:24px}.profile-card dl{margin:28px 0;text-align:left}.profile-card dl>div{display:flex;justify-content:space-between;padding:15px 0;border-bottom:1px solid #ffffff10}.profile-card dt{color:#9d95b2;font-size:12px}.profile-card dd{margin:0;color:#ece6f8;font-size:12px}.profile-card .button{width:100%}.danger-text{margin-top:20px;color:#e2a8b5}
+.holiday-dialog{width:min(560px,calc(100% - 32px));max-height:min(760px,90dvh);overflow:auto}
+.holiday-dialog hr{margin:22px 0;border:0;border-top:1px solid var(--line)}
+.holiday-form-row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.holiday-list{display:grid;gap:8px;margin-top:18px}
+.holiday-list article{display:grid;grid-template-columns:1fr auto auto;align-items:center;gap:12px;padding:12px 14px;border-radius:12px;background:#f3f0fa}.holiday-list article div{display:grid;gap:4px}.holiday-list article strong{font-size:13px}.holiday-list article span{color:#777083;font-size:10px}.holiday-list article b{font-size:12px}.holiday-list article button{width:28px;height:28px;border-radius:50%;color:#986a79}.holiday-empty{margin:0;color:#777083;font-size:12px}
+
+@media(max-width:800px){.important-grid{grid-template-columns:1fr}.important-card{min-height:170px}.home-membership{max-width:520px}}
+
+html[data-client=mobile] .workspace{padding-bottom:calc(92px + env(safe-area-inset-bottom))}
+html[data-client=mobile] .sidebar .profile{display:block;width:42px;height:42px}
+html[data-client=mobile] .sidebar .profile>span:last-child{display:none}
+html[data-client=mobile] .heading-row{margin:8px 0 18px}
+html[data-client=mobile] .workspace[data-view=home] .heading-row{display:none}
+html[data-client=mobile] .home-content{padding:6px 0 0;min-height:0}
+html[data-client=mobile] .home-membership{padding:0;max-width:none}
+html[data-client=mobile] .membership-intro{margin:5px 0 28px}
+html[data-client=mobile] .membership-intro p{margin-bottom:13px;font-size:9px}
+html[data-client=mobile] .membership-intro h2{margin:0;font-size:31px}
+html[data-client=mobile] .member-card{margin:0 5px;transform:rotate(-3deg)}
+html[data-client=mobile] .flip-caption{margin-top:22px}
+html[data-client=mobile] .mobile-nav .selected{background:#d9c8ff2b;color:#fff}
+html[data-client=mobile] .mobile-nav .selected[data-view=home] svg{fill:currentColor;stroke-width:0}
+html[data-client=mobile] .main-content{padding-top:6px}
+html[data-client=mobile] .important-overview{padding-bottom:4px}
+html[data-client=mobile] .important-grid{gap:10px}
+html[data-client=mobile] .important-card{min-height:134px;padding:17px 18px;border-radius:18px}
+html[data-client=mobile] .important-icon{position:absolute;right:17px;top:17px;width:34px;height:34px;font-size:15px}
+html[data-client=mobile] .important-label{margin-top:0;font-size:11px}
+html[data-client=mobile] .important-card strong{margin:9px 0 4px;font-size:29px}
+html[data-client=mobile] .important-card small{min-height:0;font-size:10px}
+html[data-client=mobile] .important-link{margin-top:8px;font-size:9px}
+html[data-client=mobile] .overview-note{display:grid;grid-template-columns:auto 1fr;gap:5px 12px;margin-top:10px;padding:13px 15px}
+html[data-client=mobile] .overview-note p{font-size:9px}.overview-note button{grid-column:2;margin:0;justify-self:start;font-size:9px}
+html[data-client=mobile] .ai-page{height:calc(100dvh - 250px);min-height:430px}
+html[data-client=mobile] .ai-shell{border-radius:20px}html[data-client=mobile] .ai-header{padding:15px 17px}html[data-client=mobile] .ai-messages{padding:22px 15px;gap:17px}
+html[data-client=mobile] .ai-message{max-width:90%}html[data-client=mobile] .ai-message p{font-size:12px}html[data-client=mobile] .ai-composer{margin:0 12px 12px}
+html[data-client=mobile] .profile-card{padding:30px 24px;border-radius:20px}
+html[data-client=mobile] .page-footer{display:none}
+html[data-client=mobile] .holiday-form-row{grid-template-columns:1fr}
+@media(max-width:350px){html[data-client=mobile] .important-card{min-height:122px;padding:14px 16px}html[data-client=mobile] .important-card strong{font-size:25px}html[data-client=mobile] .important-link{margin-top:5px}}
+@media(prefers-reduced-motion:reduce){.member-card,.important-card{transition:none}.member-card.is-glowing::after{animation:none}}

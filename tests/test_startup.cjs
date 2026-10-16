@@ -101,60 +101,7 @@ test('main script that never starts is caught by the watchdog', () => {
   assert.match(env.nodes.get('auth-error').textContent, /脚本未能启动/);
 });
 
-test('chat loads saved history and escapes message HTML', async () => {
-  const env = environment(async path => path === '/api/me' ? jsonResponse(401, { error: '请先登录' }) : jsonResponse(200, { mode: 'local', messages: [{ id: 1, role: 'assistant', mode: 'local', content: '<img src=x onerror=alert(1)>' }] }));
-  vm.runInContext(app, env.context);
-  await flush();
-  vm.runInContext('state.user = {id:1}', env.context);
-  await env.nodes.get('chat-launcher').handlers.click();
-  assert.match(env.nodes.get('chat-messages').innerHTML, /&lt;img/);
-  assert.doesNotMatch(env.nodes.get('chat-messages').innerHTML, /<img/);
-  assert.equal(env.nodes.get('chat-send').disabled, false);
-  assert.equal(env.nodes.get('chat-share-label').hidden, true);
-});
-
-test('failed chat restores the draft and retries the same turn identifier', async () => {
-  const ids = [];
-  const env = environment(async (path, options) => {
-    if (path === '/api/me') return jsonResponse(401, { error: '请先登录' });
-    if (options.method === 'GET') return jsonResponse(200, { mode: 'ai', messages: [] });
-    ids.push(JSON.parse(options.body).turn_id);
-    return jsonResponse(502, { error: 'AI 服务连接失败' });
-  });
-  vm.runInContext(app, env.context); await flush();
-  vm.runInContext('state.user = {id:1}', env.context);
-  await env.nodes.get('chat-launcher').handlers.click();
-  env.nodes.get('chat-input').value = '我的考试安排';
-  const event = { preventDefault() {} };
-  await env.nodes.get('chat-form').handlers.submit(event);
-  assert.equal(env.nodes.get('chat-input').value, '我的考试安排');
-  assert.equal(env.nodes.get('chat-send').disabled, false);
-  assert.match(env.nodes.get('chat-error').textContent, /连接失败/);
-  await env.nodes.get('chat-form').handlers.submit(event);
-  assert.equal(ids[0], ids[1]);
-});
-
-test('chat reply arriving after logout cannot leak into the next session', async () => {
-  let reply;
-  const env = environment(async (path, options) => {
-    if (path === '/api/me') return jsonResponse(401, { error: '请先登录' });
-    if (options.method === 'GET') return jsonResponse(200, { mode: 'local', messages: [] });
-    return new Promise(resolve => { reply = resolve; });
-  });
-  vm.runInContext(app, env.context); await flush();
-  vm.runInContext('state.user = {id:1}', env.context);
-  await env.nodes.get('chat-launcher').handlers.click();
-  env.nodes.get('chat-input').value = '我的课程';
-  const pending = env.nodes.get('chat-form').handlers.submit({ preventDefault() {} });
-  vm.runInContext('state.user = null; showAuth()', env.context);
-  reply(jsonResponse(200, { mode: 'local', messages: [{ id: 1, role: 'assistant', mode: 'local', content: '之前账号的课程' }] }));
-  await pending;
-  assert.equal(vm.runInContext('chat.messages.length', env.context), 0);
-  assert.equal(env.nodes.get('chat-messages').textContent, '');
-  assert.equal(env.nodes.get('chat-launcher').hidden, true);
-});
-
-test('member home opens first and navigation reveals schedule and membership', async () => {
+test('member home opens first and navigation reveals the new primary pages', async () => {
   const env = environment(async path => jsonResponse(200,
     path === '/api/me' ? { id: 1, name: 'Yu', membership: 'basic' } : []));
   env.nodes.get('auth-form').reset = () => {};
@@ -167,7 +114,12 @@ test('member home opens first and navigation reveals schedule and membership', a
   vm.runInContext("setView('all')", env.context);
   assert.equal(env.nodes.get('home-content').hidden, true);
   assert.equal(env.nodes.get('schedule-content').hidden, false);
-  assert.equal(env.nodes.get('new-entry').hidden, false);
+  assert.equal(env.nodes.get('page-title').textContent, '重要的事');
+  vm.runInContext("setView('ai')", env.context);
+  assert.equal(env.nodes.get('ai-content').hidden, false);
+  assert.equal(env.nodes.get('schedule-content').hidden, true);
+  vm.runInContext("setView('profile')", env.context);
+  assert.equal(env.nodes.get('profile-content').hidden, false);
   vm.runInContext("setView('membership')", env.context);
   assert.equal(env.nodes.get('membership-content').hidden, false);
   assert.equal(env.nodes.get('schedule-content').hidden, true);
@@ -189,4 +141,27 @@ test('member home opens first and navigation reveals schedule and membership', a
     preventDefault() { prevented = true; } });
   assert.equal(prevented, true);
   assert.equal(back.inert, true);
+});
+
+test('important matters chooses the nearest pending assignment and exam', async () => {
+  const env = environment(async path => jsonResponse(200,
+    path === '/api/me' ? { id: 1, name: 'Yu', membership: 'basic' } : []));
+  vm.runInContext(app, env.context); await flush();
+  vm.runInContext(`state.entries = [
+    {kind:'assignment',title:'后交的作业',date:'2099-12-20',done:0,start:''},
+    {kind:'assignment',title:'先交的作业',date:'2099-11-20',done:0,start:''},
+    {kind:'assignment',title:'已完成作业',date:'2099-01-20',done:1,start:''},
+    {kind:'exam',title:'期末考试',date:'2099-12-01',done:0,start:''}
+  ]; setView('all')`, env.context);
+  assert.equal(env.nodes.get('assignment-name').textContent, '先交的作业');
+  assert.equal(env.nodes.get('next-exam-name').textContent, '期末考试');
+});
+
+test('AI preview send does not call a chat service', async () => {
+  let requests = 0;
+  const env = environment(async () => { requests += 1; return jsonResponse(401, { error: '请先登录' }); });
+  vm.runInContext(app, env.context); await flush();
+  env.nodes.get('ai-demo-form').handlers.submit({ preventDefault() {} });
+  assert.equal(requests, 1);
+  assert.match(env.nodes.get('toast').textContent, /暂未接入/);
 });
