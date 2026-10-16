@@ -4,7 +4,8 @@ document.documentElement.dataset.journalReady = 'true';
 const $ = selector => document.querySelector(selector);
 const $$ = selector => document.querySelectorAll(selector);
 const tierNames = { basic: '普通会员', plus: 'Plus 会员', pro: 'Pro 会员' };
-const state = { user: null, entries: [], view: 'home', authMode: 'login', cardFlipped: false };
+const emptyCalendar = () => ({ summerDate: '', summerSource: '', holidays: [] });
+const state = { user: null, entries: [], calendar: emptyCalendar(), view: 'home', authMode: 'login', cardFlipped: false };
 
 function escapeHtml(value = '') {
   return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
@@ -20,7 +21,7 @@ async function api(path, options = {}) {
   const controller = new AbortController();
   const timeout = setTimeout(() => controller.abort(), 8000);
   try {
-    const response = await fetch(path, { ...options, signal: controller.signal, headers: { 'Content-Type': 'application/json', ...(options.headers || {}) } });
+    const response = await fetch(path, { ...options, signal: controller.signal, headers: { 'Content-Type': 'application/json', 'X-Journal-Request': '1', ...(options.headers || {}) } });
     const contentType = response.headers.get('content-type') || '';
     if (!contentType.includes('application/json')) throw new Error('当前页面不是由应用服务提供。请在项目目录运行 python3 server.py，再打开 http://localhost:8080。');
     const data = await response.json();
@@ -31,16 +32,13 @@ async function api(path, options = {}) {
     throw error;
   } finally { clearTimeout(timeout); }
 }
-function safeStorage() { try { return window.localStorage; } catch (_) { return null; } }
-function calendarKey() { return `studyaboard.calendar.${state.user?.id || 'guest'}`; }
-function loadCalendar() {
-  const fallback = { summerDate: '', summerSource: '', holidays: [] };
-  const storage = safeStorage();
-  if (!storage) return fallback;
-  try { const value = JSON.parse(storage.getItem(calendarKey()) || 'null'); return value && Array.isArray(value.holidays) ? { ...fallback, ...value } : fallback; }
-  catch (_) { return fallback; }
+function normalizeCalendar(value) {
+  return value && Array.isArray(value.holidays) ? { ...emptyCalendar(), ...value } : emptyCalendar();
 }
-function saveCalendar(value) { const storage = safeStorage(); if (storage) storage.setItem(calendarKey(), JSON.stringify(value)); }
+async function saveCalendar(value) {
+  state.calendar = normalizeCalendar(await api('/api/calendar', { method: 'PUT', body: JSON.stringify(value) }));
+  return state.calendar;
+}
 function localDate(value) { return value ? new Date(`${value}T12:00:00`) : null; }
 function daysUntil(value) {
   const target = localDate(value);
@@ -56,7 +54,7 @@ function upcoming(kind) {
     .sort((a, b) => `${a.date} ${a.start || ''}`.localeCompare(`${b.date} ${b.start || ''}`))[0] || null;
 }
 function renderOverview() {
-  const calendar = loadCalendar();
+  const calendar = state.calendar;
   const summerDays = daysUntil(calendar.summerDate);
   $('#summer-countdown').textContent = summerDays === null ? '待设置' : summerDays < 0 ? '日期已过' : countdownText(summerDays);
   $('#summer-source').textContent = calendar.summerSource || '请按校历确认日期';
@@ -68,14 +66,14 @@ function renderOverview() {
   $('#next-exam-name').textContent = exam ? exam.title : '暂无考试安排';
 }
 function renderHolidayList() {
-  const calendar = loadCalendar();
+  const calendar = state.calendar;
   const rows = [];
   if (calendar.summerDate) rows.push(`<article><div><strong>暑假</strong><span>${escapeHtml(formatDate(calendar.summerDate))} · ${escapeHtml(calendar.summerSource || '来源未填写')}</span></div><b>${escapeHtml(daysUntil(calendar.summerDate) < 0 ? '已开始' : countdownText(daysUntil(calendar.summerDate)))}</b></article>`);
   calendar.holidays.forEach((holiday, index) => rows.push(`<article><div><strong>${escapeHtml(holiday.name)}</strong><span>${escapeHtml(formatDate(holiday.date))} · ${escapeHtml(holiday.source)}</span></div><b>${escapeHtml(daysUntil(holiday.date) < 0 ? '已结束' : countdownText(daysUntil(holiday.date)))}</b><button type="button" data-delete-holiday="${index}" aria-label="删除${escapeHtml(holiday.name)}">×</button></article>`));
   $('#holiday-list').innerHTML = rows.length ? rows.join('') : '<p class="holiday-empty">还没有设置假期日期。</p>';
 }
 function openHolidayDialog() {
-  const calendar = loadCalendar();
+  const calendar = state.calendar;
   const form = $('#holiday-form');
   form.elements.summerDate.value = calendar.summerDate;
   form.elements.summerSource.value = calendar.summerSource;
@@ -85,21 +83,25 @@ function openHolidayDialog() {
   renderHolidayList();
   $('#holiday-dialog').showModal();
 }
-function playCardTone(flipped) {
+let cardAudioContext;
+async function playCardTone(flipped) {
   const AudioContext = window.AudioContext || window.webkitAudioContext;
   if (!AudioContext) return;
   try {
-    const context = new AudioContext(); const oscillator = context.createOscillator(); const gain = context.createGain();
+    const context = cardAudioContext || (cardAudioContext = new AudioContext());
+    if (context.state === 'suspended') await context.resume();
+    const oscillator = context.createOscillator(); const gain = context.createGain();
     oscillator.type = 'sine'; oscillator.frequency.setValueAtTime(flipped ? 520 : 620, context.currentTime); oscillator.frequency.exponentialRampToValueAtTime(flipped ? 700 : 480, context.currentTime + 0.12);
-    gain.gain.setValueAtTime(0.0001, context.currentTime); gain.gain.exponentialRampToValueAtTime(0.055, context.currentTime + 0.018); gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.16);
-    oscillator.connect(gain).connect(context.destination); oscillator.start(); oscillator.stop(context.currentTime + 0.17); oscillator.addEventListener('ended', () => context.close());
+    gain.gain.setValueAtTime(0.0001, context.currentTime); gain.gain.exponentialRampToValueAtTime(0.09, context.currentTime + 0.018); gain.gain.exponentialRampToValueAtTime(0.0001, context.currentTime + 0.18);
+    oscillator.connect(gain).connect(context.destination); oscillator.start(); oscillator.stop(context.currentTime + 0.19);
   } catch (_) { /* Audio is an optional enhancement. */ }
 }
 function setCardFlipped(flipped, withEffects = true) {
   state.cardFlipped = flipped;
-  $('#member-card-inner').classList.toggle('flipped', flipped);
+  $('#member-card-inner').classList.toggle('is-flipped', flipped);
   $('#member-card-front').setAttribute('aria-hidden', String(flipped)); $('#member-card-front').inert = flipped;
   $('#member-card-back').setAttribute('aria-hidden', String(!flipped)); $('#member-card-back').inert = !flipped;
+  $('#card-flip-caption').textContent = flipped ? '↻  轻触卡片返回正面' : '↻  轻触卡片翻面';
   if (withEffects) {
     const card = $('#member-card'); card.classList.toggle('is-glowing', false);
     setTimeout(() => card.classList.toggle('is-glowing', true), 0); setTimeout(() => card.classList.toggle('is-glowing', false), 650); playCardTone(flipped);
@@ -129,11 +131,12 @@ function fillProfile() {
   $$('.plan-status').forEach(status => { status.textContent = status.dataset.tier === state.user.membership ? '当前等级' : '暂未开放'; });
 }
 function showAuth(message = '') {
-  state.user = null; state.entries = []; $('#workspace').hidden = true; $('#auth').hidden = false; $('#loading').hidden = true; $('#auth-error').textContent = message; $('#auth-submit').disabled = false; setCardFlipped(false, false);
+  state.user = null; state.entries = []; state.calendar = emptyCalendar(); $('#workspace').hidden = true; $('#auth').hidden = false; $('#loading').hidden = true; $('#auth-error').textContent = message; $('#auth-submit').disabled = false; setCardFlipped(false, false);
 }
 async function enterWorkspace(user) {
   state.user = user;
   try { state.entries = await api('/api/entries'); } catch (error) { state.entries = []; toast(error.message); }
+  try { state.calendar = normalizeCalendar(await api('/api/calendar')); } catch (error) { state.calendar = emptyCalendar(); toast(error.message); }
   fillProfile(); $('#auth').hidden = true; $('#loading').hidden = true; $('#workspace').hidden = false; setView('home');
 }
 function configureAuth(mode) {
@@ -150,16 +153,19 @@ $('#member-card-back').addEventListener('click', event => { if (!event.target.cl
 $('#member-card-back').addEventListener('keydown', event => { if (event.target !== event.currentTarget || !['Enter', ' '].includes(event.key)) return; event.preventDefault(); setCardFlipped(false); });
 $('#holiday-card').addEventListener('click', openHolidayDialog); $('#calendar-settings').addEventListener('click', openHolidayDialog);
 $('#close-holiday-dialog').addEventListener('click', () => $('#holiday-dialog').close()); $('#cancel-holiday-dialog').addEventListener('click', () => $('#holiday-dialog').close());
-$('#holiday-list').addEventListener('click', event => {
-  const button = event.target.closest('[data-delete-holiday]'); if (!button) return; const calendar = loadCalendar(); calendar.holidays.splice(Number(button.dataset.deleteHoliday), 1); saveCalendar(calendar); renderHolidayList(); renderOverview();
+$('#holiday-list').addEventListener('click', async event => {
+  const button = event.target.closest('[data-delete-holiday]'); if (!button) return;
+  const calendar = { ...state.calendar, holidays: [...state.calendar.holidays] }; calendar.holidays.splice(Number(button.dataset.deleteHoliday), 1);
+  try { await saveCalendar(calendar); renderHolidayList(); renderOverview(); } catch (error) { toast(error.message); }
 });
-$('#holiday-form').addEventListener('submit', event => {
+$('#holiday-form').addEventListener('submit', async event => {
   event.preventDefault(); const values = Object.fromEntries(new FormData(event.currentTarget));
   if (values.summerDate && !values.summerSource.trim()) return toast('请填写暑假日期来源');
   if ((values.holidayName || values.holidayDate || values.holidaySource) && !(values.holidayName && values.holidayDate && values.holidaySource.trim())) return toast('请完整填写其他假期的名称、日期和来源');
-  const calendar = loadCalendar(); calendar.summerDate = values.summerDate; calendar.summerSource = values.summerSource.trim();
+  const calendar = { ...state.calendar, holidays: [...state.calendar.holidays] }; calendar.summerDate = values.summerDate; calendar.summerSource = values.summerSource.trim();
   if (values.holidayName) calendar.holidays.push({ name: values.holidayName.trim(), date: values.holidayDate, source: values.holidaySource.trim() });
-  saveCalendar(calendar); renderOverview(); $('#holiday-dialog').close(); toast('校历日期已保存');
+  try { await saveCalendar(calendar); renderOverview(); $('#holiday-dialog').close(); toast('校历日期已保存到数据库'); }
+  catch (error) { toast(error.message); }
 });
 $('#ai-demo-form').addEventListener('submit', event => { event.preventDefault(); toast('当前为界面预览，暂未接入 AI 服务'); });
 $('#logout').addEventListener('click', async () => { try { await api('/api/logout', { method: 'POST', body: '{}' }); } catch (_) {} showAuth('已安全退出。'); });

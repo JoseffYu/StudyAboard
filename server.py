@@ -61,6 +61,19 @@ def initialize():
             done INTEGER NOT NULL DEFAULT 0
         );
         CREATE INDEX IF NOT EXISTS entries_owner ON entries(user_id);
+        CREATE TABLE IF NOT EXISTS calendar_settings (
+            user_id INTEGER PRIMARY KEY REFERENCES users(id) ON DELETE CASCADE,
+            summer_date TEXT NOT NULL DEFAULT '',
+            summer_source TEXT NOT NULL DEFAULT ''
+        );
+        CREATE TABLE IF NOT EXISTS holidays (
+            id INTEGER PRIMARY KEY,
+            user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+            name TEXT NOT NULL,
+            date TEXT NOT NULL,
+            source TEXT NOT NULL
+        );
+        CREATE INDEX IF NOT EXISTS holidays_owner ON holidays(user_id,date);
         CREATE TABLE IF NOT EXISTS chat_messages (
             id INTEGER PRIMARY KEY,
             user_id INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
@@ -126,6 +139,14 @@ class Handler(BaseHTTPRequestHandler):
                 if path == '/api/entries':
                     rows = db.execute('SELECT id,kind,title,date,start,end,location,notes,done FROM entries WHERE user_id=? ORDER BY CASE WHEN date="" THEN 1 ELSE 0 END,date,start,id', (user['id'],)).fetchall()
                     return self.reply(200, [dict(row) for row in rows])
+                if path == '/api/calendar':
+                    settings = db.execute('SELECT summer_date,summer_source FROM calendar_settings WHERE user_id=?', (user['id'],)).fetchone()
+                    holidays = db.execute('SELECT id,name,date,source FROM holidays WHERE user_id=? ORDER BY date,id', (user['id'],)).fetchall()
+                    return self.reply(200, {
+                        'summerDate': settings['summer_date'] if settings else '',
+                        'summerSource': settings['summer_source'] if settings else '',
+                        'holidays': [dict(row) for row in holidays],
+                    })
             return self.reply(404, {'error': '页面不存在'})
         pages = {
             '/': 'desktop/index.html',
@@ -222,6 +243,34 @@ class Handler(BaseHTTPRequestHandler):
                     db.execute('DELETE FROM sessions WHERE token=?', (jar['session'].value,))
                     db.commit()
                     return self.reply(200, {'ok': True}, 'session=; HttpOnly; SameSite=Lax; Path=/; Max-Age=0')
+                if self.command == 'PUT' and path == '/api/calendar':
+                    data = self.body()
+                    summer_date = data.get('summerDate', '')
+                    summer_source = data.get('summerSource', '')
+                    holidays = data.get('holidays', [])
+                    if not isinstance(summer_date, str) or not isinstance(summer_source, str) or len(summer_source) > 120 or not isinstance(holidays, list) or len(holidays) > 20:
+                        raise FormError('校历数据格式无效')
+                    summer_date, summer_source = summer_date.strip(), summer_source.strip()
+                    if summer_date:
+                        date.fromisoformat(summer_date)
+                        if not summer_source:
+                            raise FormError('请填写暑假日期来源')
+                    clean_holidays = []
+                    for holiday in holidays:
+                        if not isinstance(holiday, dict):
+                            raise FormError('假期数据格式无效')
+                        name, day, source = (holiday.get(key, '') for key in ('name', 'date', 'source'))
+                        if not all(isinstance(value, str) for value in (name, day, source)):
+                            raise FormError('假期数据格式无效')
+                        name, day, source = name.strip(), day.strip(), source.strip()
+                        if not 1 <= len(name) <= 40 or not 1 <= len(source) <= 120:
+                            raise FormError('请完整填写假期名称与来源')
+                        date.fromisoformat(day)
+                        clean_holidays.append({'name': name, 'date': day, 'source': source})
+                    db.execute('INSERT INTO calendar_settings(user_id,summer_date,summer_source) VALUES(?,?,?) ON CONFLICT(user_id) DO UPDATE SET summer_date=excluded.summer_date,summer_source=excluded.summer_source', (user['id'], summer_date, summer_source))
+                    db.execute('DELETE FROM holidays WHERE user_id=?', (user['id'],))
+                    db.executemany('INSERT INTO holidays(user_id,name,date,source) VALUES(?,?,?,?)', ((user['id'], holiday['name'], holiday['date'], holiday['source']) for holiday in clean_holidays))
+                    return self.reply(200, {'summerDate': summer_date, 'summerSource': summer_source, 'holidays': clean_holidays})
                 match = re.fullmatch(r'/api/entries/(\d+)', path)
                 if match and self.command in ('PUT', 'DELETE'):
                     eid = int(match[1])

@@ -104,6 +104,22 @@ class ApiTests(unittest.TestCase):
         self.assertEqual(assignment['kind'], 'assignment')
         self.assertEqual(self.request('GET', '/../../server.py')[0], 404)
 
+    def test_calendar_settings_are_persisted_and_isolated(self):
+        owner = self.register('calendar-owner@example.com')
+        other = self.register('calendar-other@example.com')
+        calendar = {
+            'summerDate': '2027-07-10',
+            'summerSource': '学校官网 2027 校历',
+            'holidays': [{'name': '春假', 'date': '2027-04-02', 'source': '学校官网校历'}],
+        }
+        status, saved, _ = self.request('PUT', '/api/calendar', calendar, owner)
+        self.assertEqual(status, 200)
+        self.assertEqual(saved['holidays'][0]['name'], '春假')
+        server.initialize()
+        self.assertEqual(self.request('GET', '/api/calendar', cookie=owner)[1]['summerDate'], '2027-07-10')
+        self.assertEqual(self.request('GET', '/api/calendar', cookie=other)[1]['holidays'], [])
+        self.assertEqual(self.request('PUT', '/api/calendar', {**calendar, 'summerSource': ''}, owner)[0], 400)
+
     def test_static_page(self):
         status, body, _ = self.request('GET', '/')
         self.assertEqual(status, 200)
@@ -116,8 +132,10 @@ class ApiTests(unittest.TestCase):
         self.assertIn('data-client="mobile"', mobile)
         self.assertIn('/desktop/style.css', desktop)
         self.assertNotIn('/mobile/style.css', desktop)
+        self.assertNotIn('href="/mobile-preview"', desktop)
         self.assertIn('/mobile/style.css', mobile)
         self.assertNotIn('/desktop/style.css', mobile)
+        self.assertNotIn('href="/desktop/"', mobile)
         self.assertIn('src="/mobile/"', self.request('GET', '/mobile-preview')[1].decode())
 
     def send_chat(self, cookie, message, turn='chat-turn-00000001', share=False):

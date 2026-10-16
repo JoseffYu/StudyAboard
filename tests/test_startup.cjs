@@ -10,14 +10,14 @@ const app = fs.readFileSync('shared/app.js', 'utf8');
 const startup = fs.readFileSync('shared/startup.js', 'utf8');
 const flush = () => new Promise(resolve => setImmediate(resolve));
 
-function environment(fetch) {
+function environment(fetch, windowExtras = {}) {
   // These checks exercise script initialization against IDs in the actual HTML.
   const nodes = new Map([...html.matchAll(/<[^>]+\bid="([^"]+)"[^>]*>/g)].map(([tag, id]) => [id, {
     hidden: /\shidden(?:\s|>)/.test(tag), disabled: /\sdisabled(?:\s|>)/.test(tag),
     textContent: '', value: '', checked: false, handlers: {}, dataset: {},
     focus() {}, showModal() { this.open = true; }, close() { this.open = false; },
     addEventListener(type, callback) { this.handlers[type] = callback; },
-    setAttribute() {}, classList: { toggle() {} },
+    setAttribute() {}, classList: { values: new Map(), toggle(name, force) { this.values.set(name, force); } },
   }]));
   nodes.set('.profile-details', { setAttribute() {}, addEventListener() {} });
   const timers = new Map();
@@ -33,7 +33,7 @@ function environment(fetch) {
   };
   const context = vm.createContext({ document, fetch, AbortController, URL, crypto: require('node:crypto').webcrypto,
     location: { href: 'http://localhost:8080/' },
-    window: { addEventListener(type, callback) { events[type] = callback; } },
+    window: { addEventListener(type, callback) { events[type] = callback; }, ...windowExtras },
     setTimeout(callback, delay) { const id = Symbol(); timers.set(id, { callback, delay }); return id; },
     clearTimeout(id) { timers.delete(id); },
   });
@@ -126,6 +126,7 @@ test('member home opens first and navigation reveals the new primary pages', asy
   vm.runInContext("setView('home')", env.context);
   env.nodes.get('member-card-front').handlers.click();
   assert.equal(env.nodes.get('home-content').hidden, false);
+  assert.equal(env.nodes.get('member-card-inner').classList.values.get('is-flipped'), true);
   assert.equal(env.nodes.get('member-card-front').inert, true);
   assert.equal(env.nodes.get('member-card-back').inert, false);
   assert.equal(env.nodes.has('member-card-return'), false);
@@ -135,6 +136,7 @@ test('member home opens first and navigation reveals the new primary pages', asy
   back.handlers.click({ target: { closest: () => null } });
   assert.equal(back.inert, true);
   assert.equal(env.nodes.get('member-card-front').inert, false);
+  assert.equal(env.nodes.get('member-card-inner').classList.values.get('is-flipped'), false);
   env.nodes.get('member-card-front').handlers.click();
   let prevented = false;
   back.handlers.keydown({ target: back, currentTarget: back, key: 'Enter',
@@ -164,4 +166,21 @@ test('AI preview send does not call a chat service', async () => {
   env.nodes.get('ai-demo-form').handlers.submit({ preventDefault() {} });
   assert.equal(requests, 1);
   assert.match(env.nodes.get('toast').textContent, /暂未接入/);
+});
+
+test('membership card click resumes audio and starts a short tone', async () => {
+  let resumed = 0;
+  let started = 0;
+  class AudioContext {
+    constructor() { this.state = 'suspended'; this.currentTime = 0; this.destination = {}; }
+    async resume() { resumed += 1; this.state = 'running'; }
+    createOscillator() { return { type: '', frequency: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect(node) { return node; }, start() { started += 1; }, stop() {} }; }
+    createGain() { return { gain: { setValueAtTime() {}, exponentialRampToValueAtTime() {} }, connect(node) { return node; } }; }
+  }
+  const env = environment(async () => jsonResponse(401, { error: '请先登录' }), { AudioContext });
+  vm.runInContext(app, env.context); await flush();
+  env.nodes.get('member-card-front').handlers.click();
+  await flush();
+  assert.equal(resumed, 1);
+  assert.equal(started, 1);
 });
