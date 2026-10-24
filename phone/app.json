@@ -1,0 +1,42 @@
+{
+  "expo": {
+    "name": "留学手记",
+    "slug": "studyaboard-phone",
+    "scheme": "studyaboard",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#111329"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.joseffyu.studyaboard",
+      "buildNumber": "1",
+      "config": {
+        "usesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.joseffyu.studyaboard",
+      "versionCode": 1,
+      "edgeToEdgeEnabled": true
+    },
+    "plugins": [
+      "expo-sqlite",
+      [
+        "expo-secure-store",
+        {
+          "configureAndroidBackup": true
+        }
+      ]
+    ],
+    "assetBundlePatterns": [
+      "assets/**/*"
+    ]
+  }
+}
