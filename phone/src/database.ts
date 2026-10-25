@@ -4,7 +4,7 @@ import type { SQLiteDatabase } from 'expo-sqlite';
 
 export type Membership = 'basic' | 'plus' | 'pro';
 export type EntryKind = 'course' | 'assignment' | 'exam' | 'daily';
-export type User = { id: number; email: string; name: string; membership: Membership };
+export type User = { id: number; email: string; name: string; school: string; membership: Membership };
 export type Entry = { id: number; kind: EntryKind; title: string; date: string; start: string; end: string; location: string; notes: string; done: number };
 export type Holiday = { id?: number; name: string; date: string; source: string };
 export type CalendarSettings = { summerDate: string; summerSource: string; holidays: Holiday[] };
@@ -22,6 +22,7 @@ export async function migrate(db: SQLiteDatabase) {
       id INTEGER PRIMARY KEY,
       email TEXT NOT NULL UNIQUE COLLATE NOCASE,
       name TEXT NOT NULL,
+      school TEXT NOT NULL DEFAULT '',
       salt TEXT NOT NULL,
       password_hash TEXT NOT NULL,
       membership TEXT NOT NULL DEFAULT 'basic' CHECK(membership IN ('basic','plus','pro')),
@@ -73,6 +74,10 @@ export async function migrate(db: SQLiteDatabase) {
     );
     CREATE INDEX IF NOT EXISTS lessons_owner_time ON lessons(user_id,starts_at);
   `);
+  const userColumns = await db.getAllAsync<{ name: string }>('PRAGMA table_info(users)');
+  if (!userColumns.some(column => column.name === 'school')) {
+    await db.execAsync("ALTER TABLE users ADD COLUMN school TEXT NOT NULL DEFAULT ''");
+  }
 }
 
 function randomSalt() {
@@ -92,22 +97,24 @@ function cleanEmail(email: string) {
   return email.trim().toLowerCase();
 }
 
-export async function register(db: SQLiteDatabase, name: string, email: string, password: string): Promise<User> {
-  name = name.trim(); email = cleanEmail(email);
+export async function register(db: SQLiteDatabase, name: string, school: string, email: string, password: string): Promise<User> {
+  name = name.trim(); school = school.trim(); email = cleanEmail(email);
   if (!name || name.length > 40) throw new Error('请输入 1–40 个字符的昵称');
+  if (!school || school.length > 100) throw new Error('请输入学校英文名（最多 100 个字符）');
+  if (!/^[A-Za-z0-9 &'().,\-]+$/.test(school)) throw new Error('学校名称请使用英文');
   if (!/^\S+@\S+\.\S+$/.test(email)) throw new Error('请输入有效邮箱');
   if (password.length < 8 || password.length > 128) throw new Error('密码需要 8–128 个字符');
   const salt = await randomSalt();
   const verifier = await passwordHash(salt, password);
   try {
-    const result = await db.runAsync('INSERT INTO users(email,name,salt,password_hash) VALUES(?,?,?,?)', email, name, 'secure-store', 'secure-store');
+    const result = await db.runAsync('INSERT INTO users(email,name,school,salt,password_hash) VALUES(?,?,?,?,?)', email, name, school, 'secure-store', 'secure-store');
     try {
       await SecureStore.setItemAsync(await credentialKey(email), JSON.stringify({ salt, verifier }));
     } catch (error) {
       await db.runAsync('DELETE FROM users WHERE id=?', result.lastInsertRowId);
       throw new Error(`系统安全存储不可用：${String(error)}`);
     }
-    const user = { id: result.lastInsertRowId, email, name, membership: 'basic' as const };
+    const user = { id: result.lastInsertRowId, email, name, school, membership: 'basic' as const };
     await SecureStore.setItemAsync(SESSION_KEY, String(user.id));
     return user;
   } catch (error) {
@@ -117,7 +124,7 @@ export async function register(db: SQLiteDatabase, name: string, email: string, 
 }
 
 export async function login(db: SQLiteDatabase, email: string, password: string): Promise<User> {
-  const row = await db.getFirstAsync<User & { salt: string; password_hash: string }>('SELECT id,email,name,membership,salt,password_hash FROM users WHERE email=? COLLATE NOCASE', cleanEmail(email));
+  const row = await db.getFirstAsync<User & { salt: string; password_hash: string }>('SELECT id,email,name,school,membership,salt,password_hash FROM users WHERE email=? COLLATE NOCASE', cleanEmail(email));
   let salt = row?.salt || 'missing-user'; let expected = row?.password_hash || 'missing-hash';
   if (row?.password_hash === 'secure-store') {
     try {
@@ -130,7 +137,7 @@ export async function login(db: SQLiteDatabase, email: string, password: string)
   }
   const attempted = await passwordHash(salt, password);
   if (!row || attempted !== expected) throw new Error('邮箱或密码不正确');
-  const user = { id: row.id, email: row.email, name: row.name, membership: row.membership };
+  const user = { id: row.id, email: row.email, name: row.name, school: row.school, membership: row.membership };
   await SecureStore.setItemAsync(SESSION_KEY, String(user.id));
   return user;
 }
@@ -138,13 +145,21 @@ export async function login(db: SQLiteDatabase, email: string, password: string)
 export async function restoreSession(db: SQLiteDatabase): Promise<User | null> {
   const raw = await SecureStore.getItemAsync(SESSION_KEY);
   if (!raw) return null;
-  const user = await db.getFirstAsync<User>('SELECT id,email,name,membership FROM users WHERE id=?', Number(raw));
+  const user = await db.getFirstAsync<User>('SELECT id,email,name,school,membership FROM users WHERE id=?', Number(raw));
   if (!user) await SecureStore.deleteItemAsync(SESSION_KEY);
   return user || null;
 }
 
 export async function logout() {
   await SecureStore.deleteItemAsync(SESSION_KEY);
+}
+
+export async function updateSchool(db: SQLiteDatabase, user: User, school: string): Promise<User> {
+  school = school.trim();
+  if (!school || school.length > 100) throw new Error('请输入学校英文名（最多 100 个字符）');
+  if (!/^[A-Za-z0-9 &'().,\-]+$/.test(school)) throw new Error('学校名称请使用英文');
+  await db.runAsync('UPDATE users SET school=? WHERE id=?', school, user.id);
+  return { ...user, school };
 }
 
 export function getEntries(db: SQLiteDatabase, userId: number) {

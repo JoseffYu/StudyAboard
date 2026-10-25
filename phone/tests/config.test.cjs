@@ -19,9 +19,13 @@ assert.ok(fs.existsSync(path.join(root, 'assets/card-flip.wav')));
 for (const table of ['users', 'entries', 'calendar_settings', 'holidays', 'service_tasks', 'lessons']) {
   assert.match(database, new RegExp(`CREATE TABLE IF NOT EXISTS ${table}`));
 }
+assert.match(database, /ALTER TABLE users ADD COLUMN school/);
+assert.match(database, /export async function updateSchool/);
 
 for (const feature of ['AuthScreen', 'HomeScreen', 'ScheduleScreen', 'ServicesScreen', 'AiScreen', 'ProfileSheet']) {
   assert.match(app, new RegExp(`function ${feature}`));
 }
+assert.match(app, /function MeteorBelt/);
+assert.doesNotMatch(app, /每一程，皆有迹/);
 
 console.log('phone configuration and feature contract: OK');
